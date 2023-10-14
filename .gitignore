@@ -1,5 +1,6 @@
 .bsp/
 .idea/
+target/
 
 .DS_Store
 build.sbt
