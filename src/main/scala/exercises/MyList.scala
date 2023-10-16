@@ -1,3 +1,6 @@
+/* 
+  My version
+ */
 package exercises
 
 abstract class MyList {
