@@ -2,13 +2,14 @@ package exercises
 
 import scala.annotation.targetName
 
+
 abstract class MyListSolution[+T] {
   def head: T
   def tail: MyListSolution[T]
   def isEmpty: Boolean
   def add[S >: T](element: S): MyListSolution[S]
   def printElements: String
-  override def toString: String = "[" + printElements + "]"
+//  override def toString: String = "[" + printElements + "]"
 
   def map[V](transformer: MyTransformer[T, V]): MyListSolution[V]
   def flatmap[V](transformer: MyTransformer[T, MyListSolution[V]]): MyListSolution[V]
@@ -18,7 +19,9 @@ abstract class MyListSolution[+T] {
   def ++[S >: T](list: MyListSolution[S]): MyListSolution[S]
 }
 
-object Empty extends MyListSolution[Nothing] {
+
+// Implements case class
+case object Empty extends MyListSolution[Nothing] {
   def head: Nothing = throw new NoSuchElementException
   def tail: MyListSolution[Nothing] = throw new NoSuchElementException
   def isEmpty: Boolean = true
@@ -35,7 +38,9 @@ object Empty extends MyListSolution[Nothing] {
   def ++[S >: Nothing](list: MyListSolution[S]): MyListSolution[S] = list
 }
 
-class Cons[+T](h: T, t: MyListSolution[T]) extends MyListSolution[T] {
+
+// Implements case class
+case class Cons[+T](h: T, t: MyListSolution[T]) extends MyListSolution[T] {
   def head: T = h
   def tail: MyListSolution[T] = t
   def isEmpty: Boolean = false
