@@ -16,9 +16,11 @@ abstract class MyLyst[+T] {
   def filter(predicate: (T) => Boolean): MyLyst[T]
   def forEach(fn: (T) => Unit): Unit
   def sort(fn: (x: T, y: T) => Int): MyLyst[T]
+  def zipWith[S >: T, V](other: MyLyst[S], fn: (x: S, y: S) => V): MyLyst[V]
+  def fold[S >: T](start: S, fn: (x: S, y: S) => S): S
 
   // Concatenation
-  def ++[S >: T](list: MyLyst[S]): MyLyst[S]
+  def ++[S >: T](other: MyLyst[S]): MyLyst[S]
 }
 
 
@@ -40,8 +42,14 @@ case object Empty extends MyLyst[Nothing] {
 
   override def sort(fn: (x: Nothing, y: Nothing) => Int): MyLyst[Nothing] = Empty
 
+  override def zipWith[S >: Nothing, V](
+    other: MyLyst[S], fn: (x: S, y: S) => V
+  ): MyLyst[V] = Empty
+
+  override def fold[S >: Nothing](start: S, fn: (x: S, y: S) => S): S = start
+
   // Concatenation
-  override def ++[S >: Nothing](list: MyLyst[S]): MyLyst[S] = list
+  override def ++[S >: Nothing](other: MyLyst[S]): MyLyst[S] = other
 }
 
 
@@ -79,35 +87,46 @@ case class Cons[+T](h: T, t: MyLyst[T]) extends MyLyst[T] {
   override def sort(fn: (x: T, y: T) => Int): MyLyst[T] = {
     def swap(
       lyst: MyLyst[T],
-      return_now: Boolean = false
+      returnNow: Boolean = false
     ): (MyLyst[T], Boolean) =
     {
-      if (lyst.tail.isEmpty | return_now) {
-        println(s"Tail of lyst = ${lyst.printElements} is Empty")
+      if (lyst.tail.isEmpty | returnNow) {
+//        println(s"Tail of lyst = ${lyst.printElements} is Empty")
         (lyst, true)
       }
       else {
         if (fn(lyst.head, lyst.tail.head) > 0) {
-          val (newTail, newEnded) = swap(new Cons(lyst.head, lyst.tail.tail), return_now)
+          val (newTail, hasReturned) = swap(new Cons(lyst.head, lyst.tail.tail), returnNow)
           val newLyst = new Cons(lyst.tail.head, newTail)
-          if (newEnded) (newLyst, false)
-          else swap(newLyst, false)
+          if (hasReturned) (newLyst, false)
+          else swap(newLyst)
         }
         else {
-          val (newTail, newEnded) = swap(lyst.tail, return_now)
+          val (newTail, hasReturned) = swap(lyst.tail, returnNow)
           val newLyst = new Cons(lyst.head, newTail)
-          if (newEnded | newTail.head == lyst.tail.head) (newLyst, false)
-          else swap(newLyst, false)
+          if (hasReturned | newTail.head == lyst.tail.head) (newLyst, false)
+          else swap(newLyst)
         }
       }
     }
-    val(swappedLyst, return_now) = swap(this)
+    val (swappedLyst, return_now) = swap(this)
     swappedLyst
   }
 
+  override def zipWith[S >: T, V](
+    other: MyLyst[S], fn: (x: S, y: S) => V
+  ): MyLyst[V] =
+  {
+    new Cons(fn(this.h, other.head), this.t.zipWith(other.tail, fn))
+  }
+
+  override def fold[S >: T](start: S, fn: (x: S, y: S) => S): S = {
+    this.t.fold(fn(start, this.h), fn)
+  }
+
   // Concatenation
-  override def ++[S >: T](list: MyLyst[S]): MyLyst[S] = {
-    new Cons(h, t ++ list)
+  override def ++[S >: T](other: MyLyst[S]): MyLyst[S] = {
+    new Cons(h, t ++ other)
   }
 }
 
@@ -132,6 +151,9 @@ object TestMyList extends App {
   val listInt: MyLyst[Int] = new Cons(2, new Cons(1, Empty))
 //  println(listInt.tail)
   val listInt1: MyLyst[Int] = listInt.add(100)
+  val listInt2: MyLyst[Int] = listInt.add(300)
+  val listInt3: MyLyst[Int] = new Cons(1, Empty)
+  val listInt4: MyLyst[Int] = Empty
 //  println(listInt1)
 //  println(listInt1.tail)
 
@@ -158,6 +180,16 @@ object TestMyList extends App {
 
   val sortedListInt1 = listInt1.sort((x: Int, y: Int) => x - y)
   println(sortedListInt1.printElements)
+  val sortedListInt3 = listInt3.sort((x: Int, y: Int) => x - y)
+  println(sortedListInt3.printElements)
+  val sortedListInt4 = listInt4.sort((x: Int, y: Int) => x - y)
+  println(sortedListInt4.printElements)
+
+  println(listInt1.zipWith(listInt2, (x: Int, y: Int) => x + y))
+
+  println(listInt1.fold(0, (x: Int, y: Int) => x + y))
+  println(listInt3.fold(0, (x: Int, y: Int) => x + y))
+  println(listInt4.fold(0, (x: Int, y: Int) => x + y))
 
   // See why we need [+T] in signature of Cons
 //  val listAnimals: Cons[Animal] = new Cons[Dog](new Dog, Empty)

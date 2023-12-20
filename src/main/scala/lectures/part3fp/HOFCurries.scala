@@ -48,5 +48,7 @@ object HOFCurries extends App {
   Expand MyLyst
     - forEach method
     - sort method
+    - zipWith method
+    - fold method
    */
 }
