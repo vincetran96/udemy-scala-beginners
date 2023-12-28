@@ -51,4 +51,29 @@ object HOFCurries extends App {
     - zipWith method
     - fold method
    */
+
+  // toCurry(f: (Int, Int) => Int) => (Int => Int => Int)
+  def toCurry[T](fn: (Int, Int) => T): (Int => Int => T) = {
+    x => (y => fn(x, y))
+  }
+  val toCurrySum = toCurry((x, y) => x + y)
+  val toCurrySum10 = toCurrySum(10)
+  println(toCurrySum10(1))
+
+  // fromCurry(f: (Int => Int => Int)) => (Int, Int) => Int
+  def fromCurry(fn: (Int => (Int => Int))): ((Int, Int) => Int) = {
+    (x, y) => fn(x)(y)
+  }
+  val fromCurrySum = fromCurry(x => (y => (x + y)))
+  println(fromCurrySum(1, 2))
+
+  // compose(f, g) => x => f(g(x))
+  def compose(f: Int => Int, g: Int => Int) = (x: Int) => f(g(x))
+  val composePlusMultiply = compose(x => x + 1, y => y * 5)
+  println(composePlusMultiply(3))
+
+  // andThen(f, g) => x => g(f(x))
+  def andThen(f: Int => Int, g: Int => Int) = (x: Int) => g(f(x))
+  val andThenPlusMultiply = andThen(x => x + 1, y => y * 5)
+  println(andThenPlusMultiply(3))
 }

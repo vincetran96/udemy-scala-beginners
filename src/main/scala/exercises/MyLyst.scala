@@ -9,15 +9,15 @@ abstract class MyLyst[+T] {
   def isEmpty: Boolean
   def add[S >: T](element: S): MyLyst[S]
   def printElements: String
-//  override def toString: String = "[" + printElements + "]"
+  override def toString: String = "[" + printElements + "]"
 
   def map[V](transformer: (T) => V): MyLyst[V]
   def flatmap[V](transformer: (T) => MyLyst[V]): MyLyst[V]
   def filter(predicate: (T) => Boolean): MyLyst[T]
   def forEach(fn: (T) => Unit): Unit
-  def sort(fn: (x: T, y: T) => Int): MyLyst[T]
-  def zipWith[S >: T, V](other: MyLyst[S], fn: (x: S, y: S) => V): MyLyst[V]
-  def fold[S >: T](start: S, fn: (x: S, y: S) => S): S
+  def sort(fn: (T, T) => Int): MyLyst[T]
+  def zipWith[S >: T, V](other: MyLyst[S], fn: (S, S) => V): MyLyst[V]
+  def fold[S >: T](start: S, fn: (S, S) => S): S
 
   // Concatenation
   def ++[S >: T](other: MyLyst[S]): MyLyst[S]
@@ -40,13 +40,13 @@ case object Empty extends MyLyst[Nothing] {
 
   override def forEach(fn: Nothing => Unit): Unit = { }
 
-  override def sort(fn: (x: Nothing, y: Nothing) => Int): MyLyst[Nothing] = Empty
+  override def sort(fn: (Nothing, Nothing) => Int): MyLyst[Nothing] = Empty
 
   override def zipWith[S >: Nothing, V](
-    other: MyLyst[S], fn: (x: S, y: S) => V
+                                         other: MyLyst[S], fn: (S, S) => V
   ): MyLyst[V] = Empty
 
-  override def fold[S >: Nothing](start: S, fn: (x: S, y: S) => S): S = start
+  override def fold[S >: Nothing](start: S, fn: (S, S) => S): S = start
 
   // Concatenation
   override def ++[S >: Nothing](other: MyLyst[S]): MyLyst[S] = other
@@ -81,17 +81,13 @@ case class Cons[+T](h: T, t: MyLyst[T]) extends MyLyst[T] {
 
   override def forEach(fn: (T) => Unit): Unit = {
     fn(this.h)
-    if (!this.t.isEmpty) this.t.forEach(fn)
+    this.t.forEach(fn)
   }
 
-  override def sort(fn: (x: T, y: T) => Int): MyLyst[T] = {
-    def swap(
-      lyst: MyLyst[T],
-      returnNow: Boolean = false
-    ): (MyLyst[T], Boolean) =
+  override def sort(fn: (T, T) => Int): MyLyst[T] = {
+    def swap(lyst: MyLyst[T], returnNow: Boolean = false): (MyLyst[T], Boolean) =
     {
       if (lyst.tail.isEmpty | returnNow) {
-//        println(s"Tail of lyst = ${lyst.printElements} is Empty")
         (lyst, true)
       }
       else {
@@ -113,9 +109,7 @@ case class Cons[+T](h: T, t: MyLyst[T]) extends MyLyst[T] {
     swappedLyst
   }
 
-  override def zipWith[S >: T, V](
-    other: MyLyst[S], fn: (x: S, y: S) => V
-  ): MyLyst[V] =
+  override def zipWith[S >: T, V](other: MyLyst[S], fn: (S, S) => V): MyLyst[V] =
   {
     new Cons(fn(this.h, other.head), this.t.zipWith(other.tail, fn))
   }
@@ -140,11 +134,6 @@ case class Cons[+T](h: T, t: MyLyst[T]) extends MyLyst[T] {
 //trait MyTransformer[-T, V] {
 //  def transform(elem: T): V
 //}
-
-
-class Animal
-
-class Dog extends Animal
 
 
 object TestMyList extends App {
@@ -175,8 +164,9 @@ object TestMyList extends App {
 //    (elem: Int) => new Cons(elem, new Cons(elem * 10, Empty))
 //  ))
 
-  println(listInt1.printElements)
-//  listInt1.forEach(x => println(x))
+//  println(listInt1.printElements)
+  println(">>> forEach printing")
+  listInt1.forEach(x => println(x))
 
   val sortedListInt1 = listInt1.sort((x: Int, y: Int) => x - y)
   println(sortedListInt1.printElements)
