@@ -1,7 +1,5 @@
 package exercises
 
-import scala.annotation.targetName
-
 
 abstract class MyLystSol[+T] {
   def head: T
@@ -182,4 +180,11 @@ object TestMyLystSol extends App {
   // See why we need [+T] in signature of ConsSol
 //  val listAnimals: ConsSol[Animal] = new ConsSol[Dog](new Dog, EmptySol)
 //  println(listAnimals)
+
+  // for comprehension
+  println(">>> For comprehension")
+  val forComp = for {
+    i <- listInt
+  } yield i
+  println(forComp)
 }
