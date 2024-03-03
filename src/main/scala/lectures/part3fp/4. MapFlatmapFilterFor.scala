@@ -30,6 +30,12 @@ object MapFlatmapFilterFor extends App {
   } yield s"$c, $n"
   println(forCombos)
 
+  val ints = Seq(1, 2, 3)
+  for {i <- ints} {
+    if (i % 2 == 0) println(i)
+    else println("Odd.")
+  }
+
   // syntax overload
   println(list.map {x =>
     x * 2
